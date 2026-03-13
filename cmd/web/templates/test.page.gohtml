@@ -15,6 +15,9 @@
                 <a id="testLogBtn" class="btn btn-outline-secondary" href="javascript:void(0);">
                     Test Logger
                 </a>
+                <a id="testMailBtn" class="btn btn-outline-secondary" href="javascript:void(0);">
+                    Test Mail
+                </a>
                 <div id="output" class="mt-5" style="outline: 1px solid silver; padding: 2em;">
                     <span class="text-muted">Output shows here...</span>
                 </div>
@@ -38,47 +41,33 @@
 {{end}}
 
 {{define "js"}}
-    <script>
-        const brokerBtn = document.getElementById("brokerBtn")
-        const authBtn = document.getElementById("testAuthBtn")
-        const logBtn = document.getElementById("testLogBtn")
+    <script> 
 
         const outputSection = document.getElementById("output")
         const sentSection = document.getElementById("payload")
         const receivedSection = document.getElementById("received")
 
-        brokerBtn.addEventListener("click", function(){
-
-            const body = {
-                method: 'POST'
+        function writeToOutputs(payload, data, serviceName){
+            sentSection.innerHTML = JSON.stringify(payload, undefined, 4)
+            receivedSection.innerHTML = JSON.stringify(data, undefined, 4)
+            if (data.error){
+                outputSection.innerHTML += `<br /><strong>Error via ${serviceName}</strong>: ${data.message}`
+            } else {
+                outputSection.innerHTML += `<br /><strong>Response from broker</strong>: ${data.message}`
             }
+        }
 
-            fetch("http:\/\/localhost:8080", body)
-            .then((res)=>res.json())
-            .then((data)=> {
-                sentSection.innerHTML = "Empty post req"
-                receivedSection.innerHTML = JSON.stringify(data, undefined, 4)
-                if (data.error){
-                    console.log(data.message);
-                } else {
-                    outputSection.innerHTML += `<br /><strong>Response from broker</strong>: ${data.message}`
-                }
-            }).catch((err)=> {
-                outputSection.innerHTML += `<br /> Error: ${err}`
-            })
-
-        })
-
-        authBtn.addEventListener("click", function(){
-
+        function buildPayload(action, data){
             const payload = {
-                action: 'auth',
-                auth: {
-                    email: "admin@example.com",
-                    password: "verysecret"
-                }
+                action: action
             }
 
+            payload[action] = data
+
+            return payload
+        }
+
+        function buildRequest(payload){
             const headers = new Headers()
             headers.append("Content-Type", "application/json")
 
@@ -88,58 +77,60 @@
                 headers: headers
             }
 
-            fetch("http:\/\/localhost:8080/handle", body)
-            .then((res)=>res.json())
-            .then((data)=> {
-                sentSection.innerHTML = JSON.stringify(payload, undefined, 4)
-                receivedSection.innerHTML = JSON.stringify(data, undefined, 4)
-                if (data.error){
-                    outputSection.innerHTML += `<br /><strong>Error via auth</strong>: ${data.message}`
-                } else {
-                    outputSection.innerHTML += `<br /><strong>Response from broker</strong>: ${data.message}`
-                }
-            }).catch((err)=> {
-                outputSection.innerHTML += `<br /> Error: ${err}`
-            })
+            return body
+        }
 
-        })
+        
+        const brokerBtn = document.getElementById("brokerBtn")
+        const authBtn = document.getElementById("testAuthBtn")
+        const logBtn = document.getElementById("testLogBtn")
+        const mailBtn = document.getElementById("testMailBtn")
 
 
-        logBtn.addEventListener("click", function(){
 
-            const payload = {
-                action: 'log',
-                log: {
-                    name: "Test log",
-                    data: "This is a test log message"
-                }
-            }
+        function callService(url, payload, serviceName) {
+            const body = payload
+                ? buildRequest(payload)
+                : { method: 'POST' }
 
-            const headers = new Headers()
-            headers.append("Content-Type", "application/json")
+            const displayPayload = payload ?? { message: "empty payload" }
 
-            const body = {
-                method: 'POST',
-                body: JSON.stringify(payload),
-                headers: headers
-            }
+            fetch(url, body)
+                .then((res) => res.json())
+                .then((data) => {
+                    writeToOutputs(displayPayload, data, serviceName)
+                })
+                .catch((err) => {
+                    outputSection.innerHTML += `<br /> Error: ${err}`
+                })
+        }
 
-            fetch("http:\/\/localhost:8080/handle", body)
-            .then((res)=>res.json())
-            .then((data)=> {
-                sentSection.innerHTML = JSON.stringify(payload, undefined, 4)
-                receivedSection.innerHTML = JSON.stringify(data, undefined, 4)
-                if (data.error){
-                    outputSection.innerHTML += `<br /><strong>Error via log</strong>: ${data.message}`
-                } else {
-                    outputSection.innerHTML += `<br /><strong>Response from broker</strong>: ${data.message}`
-                }
-            }).catch((err)=> {
-                outputSection.innerHTML += `<br /> Error: ${err}`
-            })
+        brokerBtn.addEventListener("click", () =>
+            callService("http:\/\/localhost:8080", null, "broker")
+        )
 
-        })
+        authBtn.addEventListener("click", () =>
+            callService("http:\/\/localhost:8080/handle", buildPayload("auth", {
+                email: "admin@example.com",
+                password: "verysecret"
+            }), "auth")
+        )
 
+        logBtn.addEventListener("click", () =>
+            callService("http:\/\/localhost:8080/handle", buildPayload("log", {
+                name: "Test log",
+                data: "This is a test log message"
+            }), "log")
+        )
+
+        mailBtn.addEventListener("click", () =>
+            callService("http:\/\/localhost:8080/handle", buildPayload("mail", {
+                from: "me@test.com",
+                to: "you@test.com",
+                subject: "This is a test mail",
+                message: "This is a test log message"
+            }), "mail")
+        )
 
     </script>
 {{end}}
