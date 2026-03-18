@@ -15,6 +15,9 @@
                 <a id="testLogBtn" class="btn btn-outline-secondary" href="javascript:void(0);">
                     Test Logger
                 </a>
+                <a id="testGRPCLogBtn" class="btn btn-outline-secondary" href="javascript:void(0);">
+                    Test Log via gRPC
+                </a>
                 <a id="testMailBtn" class="btn btn-outline-secondary" href="javascript:void(0);">
                     Test Mail
                 </a>
@@ -85,6 +88,7 @@
         const authBtn = document.getElementById("testAuthBtn")
         const logBtn = document.getElementById("testLogBtn")
         const mailBtn = document.getElementById("testMailBtn")
+        const grpcLogBtn = document.getElementById("testGRPCLogBtn")
 
 
 
@@ -130,6 +134,13 @@
                 subject: "This is a test mail",
                 message: "This is a test log message"
             }), "mail")
+        )
+
+        grpcLogBtn.addEventListener("click", () =>
+            callService("http:\/\/localhost:8080/handle-grpc", buildPayload("grpc_log", {
+                name: "Test gRPC log",
+                data: "This is a test gRPC log message"
+            }), "gRPC log")
         )
 
     </script>
