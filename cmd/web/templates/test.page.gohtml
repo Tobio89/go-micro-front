@@ -110,25 +110,25 @@
         }
 
         brokerBtn.addEventListener("click", () =>
-            callService("http:\/\/localhost:8080", null, "broker")
+            callService("http:\/\/backend:8080", null, "broker")
         )
 
         authBtn.addEventListener("click", () =>
-            callService("http:\/\/localhost:8080/handle", buildPayload("auth", {
+            callService("http:\/\/backend:8080/handle", buildPayload("auth", {
                 email: "admin@example.com",
                 password: "verysecret"
             }), "auth")
         )
 
         logBtn.addEventListener("click", () =>
-            callService("http:\/\/localhost:8080/handle", buildPayload("log", {
+            callService("http:\/\/backend:8080/handle", buildPayload("log", {
                 name: "Test log",
                 data: "This is a test log message"
             }), "log")
         )
 
         mailBtn.addEventListener("click", () =>
-            callService("http:\/\/localhost:8080/handle", buildPayload("mail", {
+            callService("http:\/\/backend:8080/handle", buildPayload("mail", {
                 from: "me@test.com",
                 to: "you@test.com",
                 subject: "This is a test mail",
@@ -137,7 +137,7 @@
         )
 
         grpcLogBtn.addEventListener("click", () =>
-            callService("http:\/\/localhost:8080/handle-grpc", buildPayload("grpc_log", {
+            callService("http:\/\/backend:8080/handle-grpc", buildPayload("grpc_log", {
                 name: "Test gRPC log",
                 data: "This is a test gRPC log message"
             }), "gRPC log")
